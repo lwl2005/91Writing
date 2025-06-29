@@ -330,6 +330,7 @@
                     <el-icon><Check /></el-icon>
                     保存配置
                   </el-button>
+                  <el-button @click="showHistory = true">API历史管理</el-button>
                   <el-button 
                     type="danger" 
                     @click="deleteConfig(config.id)"
@@ -425,6 +426,10 @@
         </div>
       </el-card>
     </div>
+
+    <el-dialog v-model="showHistory" title="API历史管理" width="850px">
+      <ApiHistoryManager />
+    </el-dialog>
   </div>
 </template>
 
@@ -435,6 +440,7 @@ import {
   Connection, Check, CircleCheck, Warning, Star, Plus,
   Delete, Download, Upload, RefreshLeft
 } from '@element-plus/icons-vue'
+import ApiHistoryManager from '@/components/ApiHistoryManager.vue'
 
 // 响应式数据
 const activeTab = ref('1')
@@ -897,6 +903,8 @@ const resetAllConfigs = () => {
     ElMessage.success('所有配置已重置')
   })
 }
+
+const showHistory = ref(false)
 
 // 生命周期
 onMounted(() => {

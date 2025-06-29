@@ -1073,7 +1073,7 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="生成数量">
-                  <el-input-number v-model="batchGenerateConfig.count" :min="2" :max="10" />
+                  <el-input-number v-model="batchGenerateConfig.count" :min="2" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
@@ -1247,7 +1247,7 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="生成数量">
-                  <el-input-number v-model="worldGenerateConfig.count" :min="1" :max="8" />
+                  <el-input-number v-model="worldGenerateConfig.count" :min="1" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
@@ -1679,7 +1679,7 @@
       <div class="ai-batch-chapter-content">
         <el-form :model="aiBatchChapterForm" label-width="120px">
           <el-form-item label="生成数量">
-            <el-input-number v-model="aiBatchChapterForm.count" :min="1" :max="10" />
+            <el-input-number v-model="aiBatchChapterForm.count" :min="1" />
           </el-form-item>
           <el-form-item label="情节要求">
             <el-input v-model="aiBatchChapterForm.plotRequirement" type="textarea" :rows="3" placeholder="描述希望的情节发展..." />

@@ -323,11 +323,13 @@ import { ref, watch, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Download, Upload, Document, Setting, Delete, ChatLineSquare, Collection } from '@element-plus/icons-vue'
 import ApiConfig from '@/components/ApiConfig.vue'
+import ApiHistoryManager from '@/components/ApiHistoryManager.vue'
 
 // 响应式数据
 const activeTab = ref('api')
 const showImportDialog = ref(false)
 const importOptions = ref(['novels', 'prompts', 'novelGenres', 'writingGoals'])
+const showHistory = ref(false)
 
 // 数据统计
 const dataStats = ref({

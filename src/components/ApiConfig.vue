@@ -114,6 +114,7 @@
             测试连接
           </el-button>
           <el-button @click="resetConfig">重置</el-button>
+          <el-button @click="showHistory = true">API历史管理</el-button>
         </el-form-item>
       </el-form>
       
@@ -130,6 +131,9 @@
         </ul>
       </div>
     </el-card>
+    <el-dialog v-model="showHistory" title="API历史管理" width="850px">
+      <ApiHistoryManager />
+    </el-dialog>
   </div>
 </template>
 
@@ -138,11 +142,13 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useNovelStore } from '../stores/novel.js'
 import apiService from '../services/api.js'
+import ApiHistoryManager from './ApiHistoryManager.vue'
 
 const store = useNovelStore()
 const validating = ref(false)
 const customModelInput = ref('')
 const customModels = ref([])
+const showHistory = ref(false)
 
 const configForm = reactive({
   apiKey: '',
@@ -275,6 +281,16 @@ const saveConfig = async () => {
       ElMessage.success('API配置保存成功')
       // 保存到本地存储
       localStorage.setItem('apiConfig', JSON.stringify(configForm))
+      // --- 新增：保存到历史 ---
+      let apiHistory = JSON.parse(localStorage.getItem('apiHistory') || '[]')
+      if (!apiHistory.some(item => item.apiKey === configForm.apiKey)) {
+        apiHistory.push({
+          apiKey: configForm.apiKey,
+          apiBaseUrl: configForm.baseURL
+        })
+        localStorage.setItem('apiHistory', JSON.stringify(apiHistory))
+      }
+      // --- end ---
     } else {
       ElMessage.error('API密钥验证失败，请检查配置')
     }
