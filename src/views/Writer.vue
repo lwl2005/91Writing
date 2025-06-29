@@ -1976,7 +1976,7 @@
     <el-dialog 
       v-model="showNewContinueDialog" 
       title="AI智能续写" 
-      width="1000px"
+      width="1000px" 
       top="5vh"
       @close="resetContinueDialog"
     >
@@ -9486,6 +9486,7 @@ ${customPrompt}`
 .new-optimize-container {
   max-height: 70vh;
   overflow-y: auto;
+  padding-right: 8px;
 }
 
 .optimize-config-card,

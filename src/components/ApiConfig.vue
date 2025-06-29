@@ -11,6 +11,18 @@
       </template>
       
       <el-form :model="configForm" label-width="100px" size="small">
+        <el-form-item label="模型服务商">
+          <el-select v-model="selectedProvider" placeholder="请选择服务商" @change="onProviderChange">
+            <el-option v-for="provider in apiProviders" :key="provider.id" :label="provider.name" :value="provider.id" />
+          </el-select>
+        </el-form-item>
+        
+        <el-form-item v-if="selectedProvider === 'custom'" label="自定义服务商">
+          <el-input v-model="customProviderName" placeholder="服务商名称" style="width: 160px; margin-right: 8px;" />
+          <el-input v-model="customProviderUrl" placeholder="API地址" style="width: 260px; margin-right: 8px;" />
+          <el-button type="primary" size="small" @click="addCustomProvider" :disabled="!customProviderName || !customProviderUrl">添加</el-button>
+        </el-form-item>
+        
         <el-form-item label="API密钥">
           <el-input
             v-model="configForm.apiKey"
@@ -132,7 +144,7 @@
       </div>
     </el-card>
     <el-dialog v-model="showHistory" title="API历史管理" width="850px">
-      <ApiHistoryManager />
+      <ApiHistoryManager @selectHistory="onSelectHistory" />
     </el-dialog>
   </div>
 </template>
@@ -149,6 +161,8 @@ const validating = ref(false)
 const customModelInput = ref('')
 const customModels = ref([])
 const showHistory = ref(false)
+const customProviderName = ref('')
+const customProviderUrl = ref('')
 
 const configForm = reactive({
   apiKey: '',
@@ -158,6 +172,19 @@ const configForm = reactive({
   unlimitedTokens: false, // 默认不无限制
   temperature: 0.7
 })
+
+const apiProviders = [
+  { id: 'openai', name: 'OpenAI', apiUrl: 'https://api.openai.com/v1' },
+  { id: 'ali', name: '阿里百炼', apiUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1' },
+  { id: 'siliconcloud', name: 'SiliconCloud', apiUrl: 'https://api.siliconflow.cn/v1' },
+  { id: 'deepseek', name: 'DeepSeek', apiUrl: 'https://api.deepseek.com/v1' },
+  { id: 'moonshot', name: 'Moonshot', apiUrl: 'https://api.moonshot.cn/v1' },
+  { id: 'minimax', name: 'MiniMax', apiUrl: 'https://api.minimax.chat/v1' },
+  { id: 'zhipu', name: '智谱AI', apiUrl: 'https://open.bigmodel.cn/api/paas/v4/chat/completions' },
+  { id: 'baidu', name: '百度千帆', apiUrl: 'https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/completions' },
+  { id: 'custom', name: '自定义', apiUrl: '' }
+]
+const selectedProvider = ref('')
 
 const defaultModels = [
   {
@@ -353,6 +380,35 @@ const loadSavedConfig = () => {
       console.error('加载配置失败:', error)
     }
   }
+}
+
+const onSelectHistory = (row) => {
+  configForm.apiKey = row.apiKey
+  configForm.baseURL = row.apiBaseUrl
+  showHistory.value = false
+}
+
+const onProviderChange = (providerId) => {
+  if (providerId === 'custom') {
+    configForm.baseURL = ''
+  } else {
+    const provider = apiProviders.find(p => p.id === providerId)
+    if (provider) {
+      configForm.baseURL = provider.apiUrl
+    }
+  }
+}
+
+const addCustomProvider = () => {
+  const name = customProviderName.value.trim()
+  const url = customProviderUrl.value.trim()
+  if (!name || !url) return
+  const id = 'custom_' + Date.now()
+  apiProviders.push({ id, name, apiUrl: url })
+  selectedProvider.value = id
+  configForm.baseURL = url
+  customProviderName.value = ''
+  customProviderUrl.value = ''
 }
 
 onMounted(() => {

@@ -23,6 +23,7 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 
 const history = ref([])
+const emit = defineEmits(['selectHistory'])
 
 // 读取历史
 const loadHistory = () => {
@@ -46,12 +47,14 @@ const insertHistory = (row) => {
   let apiHistory = JSON.parse(localStorage.getItem('apiHistory') || '[]')
   if (apiHistory.some(item => item.apiKey === row.apiKey)) {
     ElMessage.info('该密钥已存在，自动跳过')
+    emit('selectHistory', row)
     return
   }
   apiHistory.push(row)
   localStorage.setItem('apiHistory', JSON.stringify(apiHistory))
   ElMessage.success('插入成功')
   loadHistory()
+  emit('selectHistory', row)
 }
 
 // 删除（不去重）

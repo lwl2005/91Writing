@@ -6,7 +6,11 @@
         <h1>📖 小说类型管理</h1>
         <p>管理小说类型及其相关的提示词和标签</p>
       </div>
-      <div class="header-actions">
+      <div class="header-actions" style="display: flex; gap: 12px; align-items: center;">
+        <el-button type="success" @click="showImportDialog = true">
+          <el-icon><Upload /> </el-icon>
+          导入类型
+        </el-button>
         <el-button type="primary" @click="showCreateDialog = true">
           <el-icon><Plus /></el-icon>
           添加新类型
@@ -173,6 +177,57 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 导入类型对话框 -->
+    <el-dialog v-model="showImportDialog" title="导入小说类型" width="600px">
+      <div style="background:#f5f7fa;padding:16px 18px 12px 18px;border-radius:8px;margin-bottom:18px;">
+        <b style="font-size:15px;">导入说明</b><br>
+        <span style="font-size:13px;">请选择JSON文件或直接粘贴JSON内容来导入小说类型<br>支持的格式：</span>
+        <ul style="font-size:13px;margin:8px 0 0 18px;padding:0;">
+          <li>系统导出格式：<code>{"novelGenres": [...], ...}</code></li>
+          <li>类型数组：<code>[{...}, {...}]</code></li>
+          <li>单个类型对象：<code>{"code": "fantasy", "name": "玄幻", ...}</code></li>
+        </ul>
+        <pre style="background:#fff;border-radius:4px;padding:10px 14px;overflow:auto;font-size:12px;margin:10px 0 0 0;">{
+  "novelGenres": [
+    { "code": "fantasy", "name": "玄幻", ... },
+    ...
+  ]
+}</pre>
+        <span style="font-size:13px;">导入后将覆盖现有所有类型。</span>
+      </div>
+      <el-tabs v-model="importTab" style="margin-bottom:0;">
+        <el-tab-pane label="文件导入" name="file">
+          <div style="display:flex;justify-content:center;align-items:center;min-height:180px;">
+            <el-upload
+              drag
+              :show-file-list="false"
+              accept=".json"
+              :before-upload="handleFileImport"
+              style="width:100%"
+            >
+              <el-icon style="font-size:48px;color:#bfbfbf;margin-bottom:8px;"><Upload /></el-icon>
+              <div style="color:#888;">将JSON文件拖到此处，或 <em style='color:#409EFF;cursor:pointer;'>点击上传</em></div>
+              <div style="font-size:12px;color:#aaa;margin-top:4px;">只能上传JSON文件</div>
+            </el-upload>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane label="文本导入" name="text">
+          <el-input
+            type="textarea"
+            v-model="importText"
+            :rows="8"
+            placeholder="请粘贴JSON格式的小说类型数据..."
+            style="margin-top:8px;"
+          />
+        </el-tab-pane>
+      </el-tabs>
+      <template #footer>
+        <el-button @click="showImportDialog = false">取消</el-button>
+        <el-button @click="parseImportData">解析数据</el-button>
+        <el-button type="primary" :disabled="parsedGenres.length === 0" @click="confirmImport">确认导入 ({{parsedGenres.length}}条)</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -180,7 +235,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
-  Plus, Edit, Delete, Calendar, Document, MoreFilled, CopyDocument 
+  Plus, Edit, Delete, Calendar, Document, MoreFilled, CopyDocument, Upload 
 } from '@element-plus/icons-vue'
 
 // 响应式数据
@@ -190,6 +245,10 @@ const editingGenre = ref(null)
 const formRef = ref()
 const tagInput = ref('')
 const isSaving = ref(false)
+const showImportDialog = ref(false)
+const importTab = ref('file')
+const importText = ref('')
+const parsedGenres = ref([])
 
 // 表单数据
 const genreForm = ref({
@@ -465,6 +524,54 @@ const resetForm = () => {
 // 格式化日期
 const formatDate = (date) => {
   return new Date(date).toLocaleDateString('zh-CN')
+}
+
+// 导入类型
+const handleFileImport = (file) => {
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    try {
+      parseJsonToGenres(e.target.result)
+      ElMessage.success('文件解析成功')
+    } catch (err) {
+      ElMessage.error('解析失败：' + err.message)
+    }
+  }
+  reader.readAsText(file)
+  return false
+}
+
+const parseImportData = () => {
+  try {
+    parseJsonToGenres(importText.value)
+    ElMessage.success('文本解析成功')
+  } catch (err) {
+    ElMessage.error('解析失败：' + err.message)
+  }
+}
+
+function parseJsonToGenres(jsonStr) {
+  let json = JSON.parse(jsonStr)
+  let arr = []
+  if (Array.isArray(json)) {
+    arr = json
+  } else if (json.novelGenres && Array.isArray(json.novelGenres)) {
+    arr = json.novelGenres
+  } else if (json.code && json.name) {
+    arr = [json]
+  } else {
+    throw new Error('不支持的格式')
+  }
+  parsedGenres.value = arr
+}
+
+const confirmImport = () => {
+  genres.value = parsedGenres.value
+  localStorage.setItem('novelGenres', JSON.stringify(parsedGenres.value))
+  ElMessage.success('类型导入成功！')
+  showImportDialog.value = false
+  parsedGenres.value = []
+  importText.value = ''
 }
 
 // 生命周期
